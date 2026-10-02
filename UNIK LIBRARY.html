@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNIK LIBRARY, BALDEV NAGAR, BARMER - Shift Seat & Fee Manager</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- HIDDEN FILE INPUT FOR LOGO UPLOAD -->
+    <input type="file" id="logoUploadInput" accept="image/*" class="hidden" onchange="handleLogoUpload(event)">
+
+    <!-- MAIN APP WRAPPER -->
+    <div id="mainApp" class="flex-1 flex flex-col">
+        
+        <!-- HEADER -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <!-- EDITABLE LOGO CONTAINER -->
+                    <div onclick="triggerLogoUpload()" title="Click to change logo image" class="w-12 h-12 rounded-full overflow-hidden border-2 border-amber-500 shadow-sm bg-slate-100 flex-shrink-0 cursor-pointer relative group flex items-center justify-center">
+                        <img id="appLogoImg" src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=150" alt="Logo" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-[10px] text-white font-bold">Edit</div>
+                    </div>
+                    <div>
+                        <h1 class="text-base font-bold text-slate-900 leading-tight">UNIK LIBRARY</h1>
+                        <p class="text-xs text-slate-500">Baldev Nagar, Barmer | Shift Seat & Fee Manager</p>
+                    </div>
+                </div>
+                
+                <!-- ACTION BUTTONS & FEE DUE DROPDOWN TRIGGER -->
+                <div class="flex items-center space-x-2 relative">
+                    <!-- FEE DUE ALERT TAB -->
+                    <div class="relative">
+                        <button onclick="toggleDropdown('feeDueDropdown')" id="feeDueTabBtn" class="px-3 py-1.5 text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg transition flex items-center gap-1.5">
+                            🔔 Fee Dues <span id="feeDueCountBadge" class="bg-rose-600 text-white px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+                        </button>
+                        <!-- Dropdown Menu -->
+                        <div id="feeDueDropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-slate-200 p-3 hidden z-50">
+                            <div class="flex justify-between items-center pb-2 border-b border-slate-100 mb-2">
+                                <h4 class="text-xs font-bold text-slate-900">Pending Fee Dues List</h4>
+                                <span class="text-[10px] text-slate-400">Click seat to clear</span>
+                            </div>
+                            <div id="feeDueDropdownList" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                        </div>
+                    </div>
+
+                    <button onclick="openSettingsModal()" class="px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition">
+                        ⚙️ Settings
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- DASHBOARD CONTAINER -->
+        <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
+
+            <!-- STATS & INTERACTIVE DROPDOWN CARDS -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                
+                <!-- 1. Total Seats Card -->
+                <div class="relative">
+                    <div onclick="toggleDropdown('statTotalDropdown')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs cursor-pointer hover:border-indigo-400 transition">
+                        <p class="text-xs text-slate-500 font-medium flex justify-between items-center">Total Seats <span>▼</span></p>
+                        <p id="statTotalSeats" class="text-2xl font-bold text-slate-900 mt-1">80</p>
+                    </div>
+                    <div id="statTotalDropdown" class="absolute left-0 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-slate-200 p-3 hidden z-40">
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-100 mb-2">
+                            <h4 class="text-xs font-bold text-slate-900">All Seats Overview</h4>
+                        </div>
+                        <div id="listTotalSeats" class="space-y-1.5 max-h-60 overflow-y-auto text-xs"></div>
+                    </div>
+                </div>
+
+                <!-- 2. Available Seats Card -->
+                <div class="relative">
+                    <div onclick="toggleDropdown('statAvailDropdown')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs cursor-pointer hover:border-emerald-400 transition">
+                        <p class="text-xs text-emerald-600 font-medium flex justify-between items-center">Available Seats <span>▼</span></p>
+                        <p id="statAvailable" class="text-2xl font-bold text-emerald-600 mt-1">0</p>
+                    </div>
+                    <div id="statAvailDropdown" class="absolute left-0 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-slate-200 p-3 hidden z-40">
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-100 mb-2">
+                            <h4 class="text-xs font-bold text-emerald-700">Available / Khali Seats</h4>
+                        </div>
+                        <div id="listAvailableSeats" class="space-y-1.5 max-h-60 overflow-y-auto text-xs"></div>
+                    </div>
+                </div>
+
+                <!-- 3. Partial Shifts Card -->
+                <div class="relative">
+                    <div onclick="toggleDropdown('statPartialDropdown')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs cursor-pointer hover:border-amber-400 transition">
+                        <p class="text-xs text-amber-600 font-medium flex justify-between items-center">Partial Shifts <span>▼</span></p>
+                        <p id="statPartial" class="text-2xl font-bold text-amber-600 mt-1">0</p>
+                    </div>
+                    <div id="statPartialDropdown" class="absolute left-0 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-slate-200 p-3 hidden z-40">
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-100 mb-2">
+                            <h4 class="text-xs font-bold text-amber-700">Partial Booked Seats (1 or 2 Shifts)</h4>
+                        </div>
+                        <div id="listPartialSeats" class="space-y-1.5 max-h-60 overflow-y-auto text-xs"></div>
+                    </div>
+                </div>
+
+                <!-- 4. Fully Booked Card -->
+                <div class="relative">
+                    <div onclick="toggleDropdown('statFullDropdown')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs cursor-pointer hover:border-rose-400 transition">
+                        <p class="text-xs text-rose-600 font-medium flex justify-between items-center">Fully Booked <span>▼</span></p>
+                        <p id="statFull" class="text-2xl font-bold text-rose-600 mt-1">0</p>
+                    </div>
+                    <div id="statFullDropdown" class="absolute left-0 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-slate-200 p-3 hidden z-40">
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-100 mb-2">
+                            <h4 class="text-xs font-bold text-rose-700">Fully Booked Seats (All 3 Shifts)</h4>
+                        </div>
+                        <div id="listFullSeats" class="space-y-1.5 max-h-60 overflow-y-auto text-xs"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- COLOR LEGEND & FILTERS -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
+                <div class="flex flex-wrap items-center gap-3 text-xs font-medium">
+                    <span class="text-slate-600 font-semibold">Seat Status Colors:</span>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Khali
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-100 text-amber-800 border border-amber-200">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Partial Shifts
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-100 text-rose-800 border border-rose-200">
+                        <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Full Day
+                    </span>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <input type="text" id="searchStudent" oninput="renderSeats()" placeholder="Search student name or seat no..." class="px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-60">
+                </div>
+            </div>
+
+            <!-- SEATS GRID DASHBOARD -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-base font-bold text-slate-900">Library Shift Dashboard</h2>
+                    <span class="text-xs text-slate-500">Click any seat to view or allot specific shifts</span>
+                </div>
+                <div id="seatsGrid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3"></div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- SEAT MANAGEMENT MODAL -->
+    <div id="seatModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 border border-slate-100">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                <h3 id="modalTitle" class="text-lg font-bold text-slate-900">SEAT NO. 1</h3>
+                <button onclick="closeSeatModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold px-2">&times;</button>
+            </div>
+
+            <!-- CURRENT SHIFTS STATUS OVERVIEW -->
+            <div class="mb-5 space-y-2">
+                <h4 class="text-xs font-bold text-slate-700 uppercase">Shift Status for this Seat</h4>
+                <div id="shiftStatusOverview" class="grid grid-cols-3 gap-2"></div>
+            </div>
+
+            <!-- ADMISSION FORM FOR AVAILABLE SHIFTS -->
+            <div id="admissionSection" class="border-t border-slate-100 pt-4 space-y-4">
+                <h4 class="text-xs font-bold text-indigo-700 uppercase">New Admission / Allot Shift(s)</h4>
+                <form id="admissionForm" onsubmit="handleAdmission(event)" class="space-y-3">
+                    <input type="hidden" id="admissionSeatNo">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Select Shift(s) to Book</label>
+                        <select id="stdShiftType" required onchange="updateShiftSelectionOptions()" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <option value="1">1 Shift (₹450 / month)</option>
+                            <option value="2">2 Shifts (₹750 / month)</option>
+                            <option value="3">Full Day - All 3 Shifts (₹900 / month)</option>
+                        </select>
+                    </div>
+
+                    <div id="specificShiftContainer" class="hidden">
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Choose Specific Shift(s)</label>
+                        <div id="checkboxShiftsList" class="flex flex-wrap gap-3 text-xs font-medium"></div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Student Name</label>
+                            <input type="text" id="stdName" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Full name">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Mobile Number</label>
+                            <input type="tel" id="stdMobile" required maxlength="10" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="10-digit mobile">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Joining Date</label>
+                            <input type="date" id="stdJoinDate" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Payment Mode</label>
+                            <select id="stdPayMode" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <option value="Cash">Cash</option>
+                                <option value="Online">Online (UPI / QR)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center text-sm">
+                        <span class="text-slate-600 font-medium">Calculated Monthly Fee:</span>
+                        <span id="previewFee" class="font-bold text-indigo-600 text-base">₹450</span>
+                    </div>
+
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition text-sm shadow-sm">Allot Shift(s) & Confirm Admission</button>
+                </form>
+            </div>
+
+            <!-- LIST OF CURRENTLY ALLOTTED BOOKINGS ON THIS SEAT -->
+            <div class="border-t border-slate-100 pt-4 space-y-3 mt-4">
+                <h4 class="text-xs font-bold text-slate-700 uppercase">Active Bookings on this Seat</h4>
+                <div id="activeBookingsList" class="space-y-3 max-h-60 overflow-y-auto"></div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 flex justify-end">
+                <button onclick="closeSeatModal()" class="px-5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 rounded-lg transition text-xs">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-100 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 class="text-base font-bold text-slate-900">Library Settings</h3>
+                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Total Number of Seats in Library</label>
+                <input type="number" id="inputTotalSeats" min="1" max="500" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button onclick="saveSettings()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg transition text-xs">Save Settings</button>
+                <button onclick="closeSettingsModal()" class="px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 rounded-lg transition text-xs">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        let appData = JSON.parse(localStorage.getItem('unik_library_multi_shift_data')) || {
+            totalSeats: 80,
+            customLogo: '',
+            seats: {} 
+        };
+
+        let currentActiveSeat = null;
+
+        const shiftNamesList = ["Morning", "Noon", "Evening"];
+        const shiftTimesMap = {
+            "Morning": "6 AM - 12 PM",
+            "Noon": "12 PM - 6 PM",
+            "Evening": "6 PM - 12 AM"
+        };
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        window.onload = function() {
+            renderDashboard();
+            // Close all dropdowns when clicking outside
+            window.onclick = function(event) {
+                if (!event.target.closest('.relative')) {
+                    document.querySelectorAll('[id$="Dropdown"]').forEach(el => el.classList.add('hidden'));
+                }
+            }
+        }
+
+        function triggerLogoUpload() {
+            document.getElementById('logoUploadInput').click();
+        }
+
+        function handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    appData.customLogo = e.target.result;
+                    saveData();
+                    applyLogo();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function applyLogo() {
+            const imgEl = document.getElementById('appLogoImg');
+            if(appData.customLogo) {
+                imgEl.src = appData.customLogo;
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('unik_library_multi_shift_data', JSON.stringify(appData));
+            updateFeeDueNotifications();
+            updateStatsDropdowns();
+        }
+
+        function renderDashboard() {
+            applyLogo();
+            document.getElementById('statTotalSeats').innerText = appData.totalSeats;
+            renderSeats();
+            updateFeeDueNotifications();
+            updateStatsDropdowns();
+        }
+
+        function toggleDropdown(dropdownId) {
+            const dropdowns = ['feeDueDropdown', 'statTotalDropdown', 'statAvailDropdown', 'statPartialDropdown', 'statFullDropdown'];
+            dropdowns.forEach(id => {
+                const el = document.getElementById(id);
+                if (id === dropdownId) {
+                    el.classList.toggle('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            });
+        }
+
+        function updateFeeDueNotifications() {
+            const dropdownList = document.getElementById('feeDueDropdownList');
+            dropdownList.innerHTML = '';
+            
+            let totalDuesCount = 0;
+            const currentDate = new Date();
+            const currentYear = currentDate.getFullYear();
+            const currentMonth = currentDate.getMonth();
+
+            for(let seatNo in appData.seats) {
+                const bookings = appData.seats[seatNo] || [];
+                bookings.forEach(booking => {
+                    const joinDateParts = booking.joinDate.split('-');
+                    let y = parseInt(joinDateParts[0]);
+                    let m = parseInt(joinDateParts[1]) - 1;
+
+                    while(y < currentYear || (y === currentYear && m <= currentMonth)) {
+                        const monthKey = `${y}-${String(m + 1).padStart(2, '0')}`;
+                        const isPaid = booking.feeStatus[monthKey] === true;
+
+                        if(!isPaid) {
+                            totalDuesCount++;
+                            const item = document.createElement('div');
+                            item.className = "bg-rose-50 border border-rose-200 rounded-lg p-2 flex items-center justify-between text-xs";
+                            item.innerHTML = `
+                                <div>
+                                    <p class="font-bold text-slate-900">${booking.name} <span class="text-indigo-600">(Seat ${seatNo})</span></p>
+                                    <p class="text-[10px] text-rose-700 font-semibold">Due: ${monthNames[m]} ${y}</p>
+                                </div>
+                                <button onclick="quickReceiveFee('${seatNo}', '${booking.id}', '${monthKey}')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded text-[10px] shadow-xs">Receive Fee</button>
+                            `;
+                            dropdownList.appendChild(item);
+                        }
+
+                        m++;
+                        if(m > 11) { m = 0; y++; }
+                    }
+                });
+            }
+
+            const badge = document.getElementById('feeDueCountBadge');
+            badge.innerText = totalDuesCount;
+
+            if(totalDuesCount === 0) {
+                dropdownList.innerHTML = `<p class="text-xs text-slate-400 text-center py-3">No pending fee dues! 🎉</p>`;
+            }
+        }
+
+        function quickReceiveFee(seatNo, bookingId, monthKey) {
+            const bookings = appData.seats[seatNo] || [];
+            const booking = bookings.find(b => b.id === bookingId);
+            if(booking) {
+                booking.feeStatus[monthKey] = true;
+                saveData();
+                updateFeeDueNotifications();
+                if(currentActiveSeat == seatNo) {
+                    renderActiveBookings(seatNo);
+                }
+            }
+        }
+
+        function updateStatsDropdowns() {
+            const listTotal = document.getElementById('listTotalSeats');
+            const listAvail = document.getElementById('listAvailableSeats');
+            const listPartial = document.getElementById('listPartialSeats');
+            const listFull = document.getElementById('listFullSeats');
+
+            listTotal.innerHTML = '';
+            listAvail.innerHTML = '';
+            listPartial.innerHTML = '';
+            listFull.innerHTML = '';
+
+            let countAvail = 0;
+            let countPart = 0;
+            let countFull = 0;
+
+            for(let i=1; i<=appData.totalSeats; i++) {
+                const bookings = appData.seats[i] || [];
+                let bookedShiftsCount = 0;
+                let studentNames = [];
+                bookings.forEach(b => {
+                    b.shifts.forEach(() => bookedShiftsCount++);
+                    studentNames.push(`${b.name} (${b.shifts.join(', ')})`);
+                });
+
+                // Total Seats list item
+                const totItem = document.createElement('div');
+                totItem.className = "p-1.5 bg-slate-50 border border-slate-100 rounded flex justify-between items-center cursor-pointer hover:bg-slate-100";
+                totItem.onclick = () => { openSeatModal(i); };
+                totItem.innerHTML = `
+                    <span class="font-bold text-slate-900">Seat ${i}</span>
+                    <span class="text-[10px] text-slate-600">${studentNames.length > 0 ? studentNames.join(' | ') : 'Khali'}</span>
+                `;
+                listTotal.appendChild(totItem);
+
+                if(bookedShiftsCount === 3) {
+                    countFull++;
+                    const fullItem = document.createElement('div');
+                    fullItem.className = "p-1.5 bg-rose-50 border border-rose-200 rounded flex justify-between items-center cursor-pointer hover:bg-rose-100";
+                    fullItem.onclick = () => { openSeatModal(i); };
+                    fullItem.innerHTML = `
+                        <span class="font-bold text-rose-900">Seat ${i}</span>
+                        <span class="text-[10px] text-rose-700 font-medium">${studentNames.join(', ')}</span>
+                    `;
+                    listFull.appendChild(fullItem);
+                } else if(bookedShiftsCount > 0) {
+                    countPart++;
+                    countAvail++;
+                    const partItem = document.createElement('div');
+                    partItem.className = "p-1.5 bg-amber-50 border border-amber-200 rounded flex justify-between items-center cursor-pointer hover:bg-amber-100";
+                    partItem.onclick = () => { openSeatModal(i); };
+                    partItem.innerHTML = `
+                        <span class="font-bold text-amber-900">Seat ${i} (${bookedShiftsCount}/3)</span>
+                        <span class="text-[10px] text-amber-700 font-medium">${studentNames.join(', ')}</span>
+                    `;
+                    listPartial.appendChild(partItem);
+
+                    const availItem = document.createElement('div');
+                    availItem.className = "p-1.5 bg-emerald-50 border border-emerald-200 rounded flex justify-between items-center cursor-pointer hover:bg-emerald-100";
+                    availItem.onclick = () => { openSeatModal(i); };
+                    availItem.innerHTML = `
+                        <span class="font-bold text-emerald-900">Seat ${i}</span>
+                        <span class="text-[10px] text-emerald-700 font-medium">${3 - bookedShiftsCount} Shift(s) Khali</span>
+                    `;
+                    listAvail.appendChild(availItem);
+                } else {
+                    countAvail++;
+                    const availItem = document.createElement('div');
+                    availItem.className = "p-1.5 bg-emerald-50 border border-emerald-200 rounded flex justify-between items-center cursor-pointer hover:bg-emerald-100";
+                    availItem.onclick = () => { openSeatModal(i); };
+                    availItem.innerHTML = `
+                        <span class="font-bold text-emerald-900">Seat ${i}</span>
+                        <span class="text-[10px] text-emerald-700 font-medium">Poori Khali</span>
+                    `;
+                    listAvail.appendChild(availItem);
+                }
+            }
+
+            if(listTotal.children.length === 0) listTotal.innerHTML = `<p class="text-slate-400 italic text-center py-2">No seats found.</p>`;
+            if(listAvail.children.length === 0) listAvail.innerHTML = `<p class="text-slate-400 italic text-center py-2">No available seats.</p>`;
+            if(listPartial.children.length === 0) listPartial.innerHTML = `<p class="text-slate-400 italic text-center py-2">No partial bookings.</p>`;
+            if(listFull.children.length === 0) listFull.innerHTML = `<p class="text-slate-400 italic text-center py-2">No fully booked seats.</p>`;
+        }
+
+        function renderSeats() {
+            const grid = document.getElementById('seatsGrid');
+            grid.innerHTML = '';
+
+            let countAvailable = 0;
+            let countPartial = 0;
+            let countFull = 0;
+
+            const searchQuery = document.getElementById('searchStudent').value.toLowerCase();
+
+            for(let i=1; i<=appData.totalSeats; i++) {
+                const bookings = appData.seats[i] || [];
+                let bookedShiftsCount = 0;
+                let studentNamesSet = new Set();
+                bookings.forEach(b => {
+                    b.shifts.forEach(() => bookedShiftsCount++);
+                    studentNamesSet.add(b.name);
+                });
+
+                let statusColor = 'bg-emerald-50 text-emerald-900 border-emerald-200 hover:bg-emerald-100';
+                let badgeText = 'All Khali';
+
+                if(bookedShiftsCount === 3) {
+                    statusColor = 'bg-rose-50 text-rose-900 border-rose-200 hover:bg-rose-100';
+                    badgeText = 'Full Day Booked';
+                    countFull++;
+                } else if(bookedShiftsCount > 0) {
+                    statusColor = 'bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-100';
+                    badgeText = `${bookedShiftsCount}/3 Shifts`;
+                    countPartial++;
+                    countAvailable++;
+                } else {
+                    countAvailable++;
+                }
+
+                if(searchQuery) {
+                    const matchSeat = i.toString().includes(searchQuery);
+                    let matchName = false;
+                    studentNamesSet.forEach(name => {
+                        if(name.toLowerCase().includes(searchQuery)) matchName = true;
+                    });
+                    if(!matchSeat && !matchName) continue;
+                }
+
+                const namesStr = studentNamesSet.size > 0 ? Array.from(studentNamesSet).join(', ') : 'Khali';
+
+                const seatBox = document.createElement('div');
+                seatBox.className = `p-3 rounded-xl border flex flex-col justify-between cursor-pointer transition shadow-2xs ${statusColor}`;
+                seatBox.onclick = () => openSeatModal(i);
+                
+                seatBox.innerHTML = `
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-bold">SEAT ${i}</span>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded font-semibold ${bookedShiftsCount === 3 ? 'bg-rose-200 text-rose-800' : bookedShiftsCount > 0 ? 'bg-amber-200 text-amber-800' : 'bg-emerald-200 text-emerald-800'}">${badgeText}</span>
+                    </div>
+                    <div class="text-[11px] font-medium truncate mb-2 text-slate-700">👤 ${namesStr}</div>
+                    <div class="grid grid-cols-3 gap-1 text-[9px] font-bold text-center">
+                        <span class="p-1 rounded ${isShiftBooked(i, 'Morning') ? 'bg-rose-500 text-white' : 'bg-emerald-500 text-white'}">M</span>
+                        <span class="p-1 rounded ${isShiftBooked(i, 'Noon') ? 'bg-rose-500 text-white' : 'bg-emerald-500 text-white'}">N</span>
+                        <span class="p-1 rounded ${isShiftBooked(i, 'Evening') ? 'bg-rose-500 text-white' : 'bg-emerald-500 text-white'}">E</span>
+                    </div>
+                `;
+                grid.appendChild(seatBox);
+            }
+
+            document.getElementById('statAvailable').innerText = countAvailable;
+            document.getElementById('statPartial').innerText = countPartial;
+            document.getElementById('statFull').innerText = countFull;
+            updateStatsDropdowns();
+        }
+
+        function isShiftBooked(seatNo, shiftName) {
+            const bookings = appData.seats[seatNo] || [];
+            return bookings.some(b => b.shifts.includes(shiftName));
+        }
+
+        function openSeatModal(seatNo) {
+            // Close any open dropdowns
+            document.querySelectorAll('[id$="Dropdown"]').forEach(el => el.classList.add('hidden'));
+
+            currentActiveSeat = seatNo;
+            document.getElementById('modalTitle').innerText = `SEAT NO. ${seatNo}`;
+            document.getElementById('seatModal').classList.remove('hidden');
+
+            renderShiftOverview(seatNo);
+            renderActiveBookings(seatNo);
+
+            document.getElementById('admissionSeatNo').value = seatNo;
+            document.getElementById('admissionForm').reset();
+            document.getElementById('stdJoinDate').valueAsDate = new Date();
+            document.getElementById('stdShiftType').value = "1";
+            updateShiftSelectionOptions();
+        }
+
+        function closeSeatModal() {
+            document.getElementById('seatModal').classList.add('hidden');
+            currentActiveSeat = null;
+        }
+
+        function renderShiftOverview(seatNo) {
+            const container = document.getElementById('shiftStatusOverview');
+            container.innerHTML = '';
+
+            shiftNamesList.forEach(shiftName => {
+                const booked = isShiftBooked(seatNo, shiftName);
+                const card = document.createElement('div');
+                card.className = `p-2.5 rounded-lg border text-center ${booked ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-emerald-50 border-emerald-200 text-emerald-800'}`;
+                card.innerHTML = `
+                    <p class="text-[11px] font-bold">${shiftName}</p>
+                    <p class="text-[9px] text-slate-500 mb-1">${shiftTimesMap[shiftName]}</p>
+                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold ${booked ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'}">${booked ? 'Booked' : 'Khali'}</span>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateShiftSelectionOptions() {
+            const shiftType = document.getElementById('stdShiftType').value;
+            const specificContainer = document.getElementById('specificShiftContainer');
+            const checkboxList = document.getElementById('checkboxShiftsList');
+            checkboxList.innerHTML = '';
+
+            const seatNo = currentActiveSeat;
+            const freeShifts = shiftNamesList.filter(s => !isShiftBooked(seatNo, s));
+
+            if(shiftType === '3') {
+                specificContainer.classList.add('hidden');
+                document.getElementById('previewFee').innerText = '₹900';
+            } else {
+                specificContainer.classList.remove('hidden');
+                document.getElementById('previewFee').innerText = shiftType === '2' ? '₹750' : '₹450';
+
+                freeShifts.forEach(shiftName => {
+                    const label = document.createElement('label');
+                    label.className = "flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer";
+                    label.innerHTML = `
+                        <input type="checkbox" name="selectedShiftCheckbox" value="${shiftName}" class="rounded text-indigo-600 focus:ring-indigo-500" ${freeShifts.length === 1 ? 'checked' : ''}>
+                        <span>${shiftName} (${shiftTimesMap[shiftName]})</span>
+                    `;
+                    checkboxList.appendChild(label);
+                });
+            }
+        }
+
+        function handleAdmission(e) {
+            e.preventDefault();
+            const seatNo = document.getElementById('admissionSeatNo').value;
+            const shiftType = document.getElementById('stdShiftType').value;
+            const name = document.getElementById('stdName').value.trim();
+            const mobile = document.getElementById('stdMobile').value.trim();
+            const joinDate = document.getElementById('stdJoinDate').value;
+            const payMode = document.getElementById('stdPayMode').value;
+
+            let assignedShifts = [];
+
+            if(shiftType === '3') {
+                if(shiftNamesList.some(s => isShiftBooked(seatNo, s))) {
+                    alert('Some shifts on this seat are already booked!');
+                    return;
+                }
+                assignedShifts = [...shiftNamesList];
+            } else {
+                const checkboxes = document.querySelectorAll('input[name="selectedShiftCheckbox"]:checked');
+                checkboxes.forEach(cb => assignedShifts.push(cb.value));
+
+                const reqCount = parseInt(shiftType);
+                if(assignedShifts.length !== reqCount) {
+                    alert(`Please select exactly ${reqCount} shift(s).`);
+                    return;
+                }
+
+                for(let s of assignedShifts) {
+                    if(isShiftBooked(seatNo, s)) {
+                        alert(`Shift "${s}" is already booked!`);
+                        return;
+                    }
+                }
+            }
+
+            const joinMonthKey = joinDate.substring(0, 7);
+            let feeStatus = {};
+            feeStatus[joinMonthKey] = true;
+
+            if(!appData.seats[seatNo]) {
+                appData.seats[seatNo] = [];
+            }
+
+            const newBooking = {
+                id: 'b_' + Date.now(),
+                name,
+                mobile,
+                joinDate,
+                shifts: assignedShifts,
+                payMode,
+                feeStatus
+            };
+
+            appData.seats[seatNo].push(newBooking);
+            saveData();
+            
+            renderShiftOverview(seatNo);
+            renderActiveBookings(seatNo);
+            renderDashboard();
+        }
+
+        function renderActiveBookings(seatNo) {
+            const container = document.getElementById('activeBookingsList');
+            container.innerHTML = '';
+
+            const bookings = appData.seats[seatNo] || [];
+
+            if(bookings.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 italic">No active bookings on this seat.</p>`;
+                return;
+            }
+
+            bookings.forEach((booking) => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2 text-xs";
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-slate-900">${booking.name} (${booking.mobile})</span>
+                        <button onclick="removeBooking('${seatNo}', '${booking.id}')" class="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded font-semibold text-[10px]">Vacate Booking</button>
+                    </div>
+                    <div class="text-[11px] text-slate-600 grid grid-cols-2 gap-1">
+                        <p>⏰ Shifts: <span class="font-semibold text-slate-900">${booking.shifts.join(', ')}</span></p>
+                        <p>📅 Joined: <span class="font-semibold text-slate-900">${booking.joinDate}</span></p>
+                        <p>💳 Payment: <span class="font-semibold text-slate-900">${booking.payMode || 'Cash'}</span></p>
+                    </div>
+                    <div class="border-t border-slate-200 pt-2">
+                        <p class="text-[10px] font-bold text-slate-700 uppercase mb-1">Monthly Fee Ledger (Click to toggle Paid/Due):</p>
+                        <div id="ledger_${booking.id}" class="grid grid-cols-2 sm:grid-cols-3 gap-1 max-h-32 overflow-y-auto"></div>
+                    </div>
+                `;
+
+                container.appendChild(card);
+                renderBookingLedger(booking);
+            });
+        }
+
+        function renderBookingLedger(booking) {
+            const container = document.getElementById(`ledger_${booking.id}`);
+            if(!container) return;
+            container.innerHTML = '';
+
+            const joinDateParts = booking.joinDate.split('-');
+            const joinYear = parseInt(joinDateParts[0]);
+            const joinMonth = parseInt(joinDateParts[1]) - 1;
+
+            const currentDate = new Date();
+            const currentYear = currentDate.getFullYear();
+            const currentMonth = currentDate.getMonth();
+
+            let y = joinYear;
+            let m = joinMonth;
+
+            while(y < currentYear || (y === currentYear && m <= currentMonth)) {
+                const monthKey = `${y}-${String(m + 1).padStart(2, '0')}`;
+                const isPaid = booking.feeStatus[monthKey] === true;
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `p-1.5 rounded border text-[10px] font-semibold flex items-center justify-between transition ${isPaid ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100' : 'bg-rose-50 text-rose-800 border-rose-300 hover:bg-rose-100'}`;
+                
+                btn.innerHTML = `
+                    <span>${monthNames[m]} ${y}</span>
+                    <span class="px-1.5 py-0.2 rounded uppercase font-bold text-[9px] ${isPaid ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'}">${isPaid ? 'Paid' : 'Due'}</span>
+                `;
+
+                btn.onclick = () => {
+                    booking.feeStatus[monthKey] = !isPaid;
+                    saveData();
+                    renderBookingLedger(booking);
+                };
+
+                container.appendChild(btn);
+
+                m++;
+                if(m > 11) { m = 0; y++; }
+            }
+        }
+
+        function removeBooking(seatNo, bookingId) {
+            if(confirm('Are you sure you want to vacate this booking?')) {
+                appData.seats[seatNo] = appData.seats[seatNo].filter(b => b.id !== bookingId);
+                if(appData.seats[seatNo].length === 0) {
+                    delete appData.seats[seatNo];
+                }
+                saveData();
+                renderShiftOverview(seatNo);
+                renderActiveBookings(seatNo);
+                renderDashboard();
+            }
+        }
+
+        function openSettingsModal() {
+            document.getElementById('inputTotalSeats').value = appData.totalSeats;
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        function saveSettings() {
+            const newTotal = parseInt(document.getElementById('inputTotalSeats').value);
+            if(newTotal && newTotal > 0 && newTotal <= 500) {
+                appData.totalSeats = newTotal;
+                saveData();
+                closeSettingsModal();
+                renderDashboard();
+            } else {
+                alert('Please enter a valid seat count between 1 and 500.');
+            }
+        }
+    </script>
+</body>
+</html>
